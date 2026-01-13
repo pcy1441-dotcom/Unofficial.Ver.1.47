@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PINEAPPLE MYSTERY - FINAL</title>
+<style>
+  :root { 
+    --bg: #050505; --accent: #f4d03f; --red: #cc0000; --blue: #2b57ff; --green: #28a745; 
+    --kiwi: #00ff00; --bberry: #4facfe; --pink: #ff69b4; --gold: #b8860b;
+  }
+  body { font-family: 'Courier New', monospace; background: var(--bg); color: #e0e0e0; margin: 0; text-align: center; transition: 0.8s; height: 100vh; overflow: hidden; }
+  body.kiwi-mode { --accent: var(--kiwi); color: var(--kiwi); }
+  body.blueberry-mode { --accent: var(--bberry); color: #fff; }
+  body.equinox-mode { background: #111 !important; color: #fff !important; }
+  body.equinox-mode .t-top { background: #fff !important; color: #000 !important; }
+  body.equinox-mode .t-bottom { background: #000 !important; color: #fff !important; border-top: 1px solid #333; }
+
+  .ticker-wrap { width: 100%; overflow: hidden; background: var(--accent); color: #000; padding: 5px 0; font-weight: 900; position: fixed; z-index: 100; top: 0; }
+  .t-bottom { top: auto; bottom: 0; }
+  .ticker { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  .wrapper { height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+  .card { background: rgba(15,15,15,0.95); padding: 30px; border-radius: 20px; border: 1px solid #333; width: 100%; max-width: 380px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10; display: none; }
+  .btn { background: #111; color: #fff; border: 1px solid #333; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+
+  #debug-panel { max-height: 200px; overflow-y: auto; margin-top: 15px; text-align: left; font-size: 11px; border: 1px dashed var(--accent); padding: 10px; }
+  .p-setting { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+  select { background: #000; color: var(--accent); border: 1px solid #333; font-size: 10px; }
+  
+  #role { font-size: 45px; font-weight: 900; margin-bottom: 10px; }
+  #skill { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+  .sk-bberry-devil { color: var(--bberry); text-shadow: 0 0 10px var(--bberry); font-style: italic; }
+  #log-box { display: none; text-align: left; background: #000 !important; padding: 15px; font-size: 12px; color: var(--kiwi) !important; border: 1px solid var(--kiwi); margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<div class="ticker-wrap t-top"><div class="ticker">PINEAPPLE SYSTEM ONLINE 0217 🍍 CORE SECURED 🍍</div></div>
+
+<div id="h-screen" style="display:none; position:fixed; width:100%; height:100%; background:#000; z-index:200; flex-direction:column; justify-content:center; align-items:center;">
+  <div style="color:#fff;">INITIALIZING...</div>
+  <div style="width:200px; height:3px; background:#222; margin-top:15px;"><div id="p-bar" style="width:0%; height:100%; background:#fff;"></div></div>
+</div>
+
+<div class="wrapper">
+  <div id="menu" class="card" style="display: block;">
+    <h1 id="m-title" style="color:var(--accent); letter-spacing:5px;">PINEAPPLE</h1>
+    <p id="m-desc" style="font-size:10px; color:#555;">DOMINANT SYSTEM</p>
+    <div style="margin: 20px 0;">PLAYER: <input type="number" id="pCount" min="4" max="20" value="6" onchange="updateAdminUI()" style="background:none; border:none; border-bottom:1px solid #444; color:#fff; width:45px; text-align:center;"></div>
+    <button onclick="bootSystem()" class="btn" style="color:var(--accent);">START SYSTEM</button>
+    <div id="debug-panel" style="display:none;">
+      TYPE: <select id="forceType"><option value="none">RANDOM</option><option value="Standard">Standard</option><option value="Chillsear">Chillsear</option><option value="Zombie">Zombie</option><option value="Eden">Eden</option></select>
+      <div id="p-list" style="margin-top:10px;"></div>
+    </div>
+    <span onclick="openAdmin()" style="font-size:10px; color:#1a1a1a; cursor:pointer; display:block; margin-top:20px;">[ADMIN]</span>
+  </div>
+
+  <div id="equinox-screen" class="card">
+    <div style="font-size:40px; font-weight:900; background: linear-gradient(135deg, #fff 50%, #000 50%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">EQUINOX</div>
+    <p style="font-size:12px; color:#888;">양과 음 사이에 존재하는 무언가</p>
+    <div style="font-size:9px; color:#666; text-align:left; line-height:1.8;">EDEN: 01000101 01000100 01000101 01001110<br>DEVIL: 01000100 01000101 01010110 01001001 01001110</div>
+    <button onclick="location.reload()" class="btn">RETURN</button>
+  </div>
+
+  <div id="draw-area" class="card"><div id="pNum" style="color:#888; font-size:22px; margin-bottom:30px;">PLAYER 1</div><button onclick="reveal()" class="btn" style="background:var(--red); height:80px; font-size:20px;">ACCESS ROLE</button></div>
+  <div id="result" class="card" style="background:#fdfdfd !important; color:#111 !important;"><div id="role"></div><div id="skill"></div><div id="desc" style="font-size:15px; color:#444; margin-bottom:20px;"></div><button onclick="next()" class="btn" style="background:#000; color:#fff;">CONFIRM</button></div>
+  <div id="final-screen" class="card"><div id="fType" style="font-size:40px; font-weight:900;"></div><div id="fDesc" style="color:#888; margin-bottom:20px; font-size:14px;"></div><button onclick="checkLog()" class="btn">VIEW DATA LOG</button><div id="log-box"></div><button onclick="location.reload()" class="btn" style="color:#444; border:none; margin-top:10px;">REBOOT</button></div>
+</div>
+
+<div class="ticker-wrap t-bottom"><div class="ticker">PINEAPPLE CORP 🍍 0217 🍍 EQUINOX 619 🍍</div></div>
+
+<script>
+const skills = {
+  머더: [{n:"방탄", d:"한 번 공격을 버팁니다. (2목숨)"}, {n:"가방", d:"죽인 대상이 마지막에 사망하도록 위장합니다."}, {n:"총잡이", d:"보안관과 같은 방식으로 처치합니다."}],
+  보안관: [{n:"강인한", d:"목숨이 2개가 됩니다."}, {n:"마피아", d:"모두 제거 시 즉시 승리합니다."}],
+  의사: [{n:"자가치유", d:"자신을 치료할 수 있습니다. (1회)"}, {n:"전문 의사", d:"최대 2명까지 치료할 수 있습니다."}],
+  시민: [{n:"스파이", d:"시민 제거 시 목숨이 증가합니다."}, {n:"퍼블win", d:"가장 먼저 죽으면 시민이 승리합니다."}, {n:"패링", d:"한 번의 공격을 막아냅니다."}]
+};
+const mTypes = [{n:"Standard", w:59, d:"기본 라운드입니다.", c:"var(--red)"}, {n:"Chillsear", w:30, d:"치료 불가 라운드입니다.", c:"#87CEEB"}, {n:"Zombie", w:10, d:"감염 라운드입니다.", c:"#32CD32"}, {n:"Eden", w:1, d:"머더 목숨 5개 보스전.", c:"#000000"}, {n:"Crying Devil", w:0, d:"블루베리의 파편. 모든 총구에 맞서십시오.", c:"#4facfe"}];
+
+let tP, cur, rls, rMT, aS, log = [];
+
+function hideAll() { document.querySelectorAll('.card').forEach(c => c.style.display = 'none'); }
+function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+function openAdmin() {
+  const pw = prompt("CODE:");
+  if(pw === "619") { hideAll(); document.getElementById("equinox-screen").style.display = "block"; document.body.className = "equinox-mode"; }
+  else if(pw === "9245" || pw === "1441") {
+    document.body.className = pw === "9245" ? "kiwi-mode" : "blueberry-mode";
+    document.getElementById("debug-panel").style.display = "block";
+    if(pw === "1441" && !document.querySelector('option[value="Crying Devil"]')) 
+      document.getElementById("forceType").innerHTML += `<option value="Crying Devil">Crying Devil</option>`;
+    updateAdminUI();
+  }
+}
+
+function updateAdminUI() {
+  const cnt = document.getElementById("pCount").value;
+  const list = document.getElementById("p-list");
+  list.innerHTML = "";
+  for(let i=0; i<cnt; i++) {
+    list.innerHTML += `<div class="p-setting">P${i+1}: 
+      <select id="p${i}r"><option value="none">RAND</option><option value="머더">머더</option><option value="보안관">보안관</option><option value="의사">의사</option><option value="시민">시민</option></select>
+      <select id="p${i}s"><option value="none">RAND</option><option value="방탄">방탄</option><option value="마피아">마피아</option><option value="스파이">스파이</option><option value="패링">패링</option></select></div>`;
+  }
+}
+
+function bootSystem() {
+  document.getElementById("h-screen").style.display = "flex";
+  let p = 0; const iv = setInterval(() => { p += 10; document.getElementById("p-bar").style.width = p + "%"; if(p >= 100) { clearInterval(iv); setup(); } }, 50);
+}
+
+function setup() {
+  hideAll(); document.getElementById("h-screen").style.display = "none";
+  tP = parseInt(document.getElementById("pCount").value);
+  const fT = document.getElementById("forceType").value;
+  rMT = fT !== "none" ? mTypes.find(t => t.n === fT) : mTypes[Math.floor(Math.random() * 4)];
+
+  rls = new Array(tP).fill(null); aS = new Array(tP).fill(null);
+  
+  // 관리자 설정 우선 적용
+  for(let i=0; i<tP; i++) {
+    const sr = document.getElementById(`p${i}r`)?.value;
+    const ss = document.getElementById(`p${i}s`)?.value;
+    if(sr && sr !== "none") rls[i] = sr;
+    if(ss && ss !== "none") { for(let k in skills) { const f = skills[k].find(s=>s.n===ss); if(f) aS[i] = f; } }
+  }
+
+  if(!rls.includes("머더")) rls[Math.floor(Math.random()*tP)] = "머더";
+  if(rMT.n === "Crying Devil") { for(let i=0; i<tP; i++) if(rls[i] !== "머더") rls[i] = "보안관"; }
+  rls = rls.map(r => r || "시민");
+
+  // 중복 방지를 위한 능력 셔플링
+  const skillPools = {};
+  for(let key in skills) skillPools[key] = shuffle([...skills[key]]);
+
+  aS = aS.map((fixedSkill, i) => {
+    if(fixedSkill) return fixedSkill;
+    const role = rls[i];
+    if(role === "머더") {
+      if(rMT.n === "Standard") return skillPools.머더.pop() || skills.머더[0];
+      if(rMT.n === "Crying Devil") return {n:"Crying Devil", d:"당신을 제외한 모든 플레이어가 보안관입니다.", s:"sk-bberry-devil"};
+      return {n: rMT.n, d: rMT.d};
+    }
+    return skillPools[role].pop() || {n:"무능력", d:"능력이 없습니다."};
+  });
+
+  log = rls.map((r, i) => `P${i+1}: [${r}] - ${aS[i].n}`); cur = 0;
+  document.getElementById("draw-area").style.display = "block";
+  document.getElementById("pNum").innerText = `PLAYER 1`;
+}
+
+function reveal() {
+  hideAll(); const r = rls[cur], s = aS[cur];
+  const rd = document.getElementById("role");
+  rd.innerText = r; rd.style.color = r==="머더"?"var(--red)":r==="보안관"?"var(--blue)":"var(--green)";
+  document.getElementById("skill").innerText = s.n; document.getElementById("skill").className = s.s || "";
+  document.getElementById("desc").innerText = s.d;
+  document.getElementById("result").style.display = "block";
+}
+
+function next() {
+  cur++;
+  if(cur >= tP) {
+    hideAll(); document.getElementById("final-screen").style.display = "block";
+    document.getElementById("fType").innerText = rMT.n; document.getElementById("fType").style.color = rMT.c;
+    document.getElementById("fDesc").innerText = rMT.d;
+    return;
+  }
+  hideAll(); document.getElementById("draw-area").style.display = "block";
+  document.getElementById("pNum").innerText = `PLAYER ${cur+1}`;
+}
+
+function checkLog() {
+  const pw = prompt("0217:");
+  if(pw === "0217") { document.getElementById("log-box").innerHTML = log.join("<br>"); document.getElementById("log-box").style.display = "block"; }
+}
+</script>
+</body>
+</html>
